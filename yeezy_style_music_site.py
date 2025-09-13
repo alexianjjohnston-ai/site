@@ -5,8 +5,8 @@ from email.mime.text import MIMEText
 app = Flask(__name__)
 
 # ----------- CONFIG -----------
-EMAIL_ADDRESS = "Alexianjjohnston@gmail.com"     # Replace with your email
-EMAIL_PASSWORD = "izwc nbwc oilo ujvl"       # Replace with app password
+EMAIL_ADDRESS = "Alexianjjohnston@gmail.com"     # Your Gmail
+EMAIL_PASSWORD = "izwc nbwc oilo ujvl"          # Gmail app password
 SONGS_FILE = 'songs.json'
 ARTISTS_FILE = 'artists.json'
 EMAILS_FILE = 'emails.json'
@@ -37,6 +37,7 @@ def send_email(to_email, subject, message):
         server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
         server.sendmail(EMAIL_ADDRESS, [to_email], msg.as_string())
         server.quit()
+        print(f"Email sent to {to_email}")
     except Exception as e:
         print("Email sending failed:", e)
 
@@ -46,6 +47,11 @@ def index():
     songs = load_json(SONGS_FILE)
     artists = load_json(ARTISTS_FILE)
     return render_template('index.html', songs=songs, artists=artists, label_name="HOMOSEXUAL")
+
+@app.route('/artist/<name>')
+def artist_page(name):
+    songs = [s for s in load_json(SONGS_FILE) if s["artist"] == name]
+    return render_template('artist.html', songs=songs, artist=name)
 
 @app.route('/admin', methods=['GET','POST'])
 def admin():
@@ -70,7 +76,7 @@ def admin():
             cover_file = request.files.get('image')
 
             audio_filename = ''
-            cover_filename = '/static/img/placeholder.jpg'
+            cover_filename = 'placeholder.jpg'
 
             if audio_file:
                 audio_filename = f"{uuid.uuid4().hex}_{audio_file.filename}"
@@ -93,20 +99,20 @@ def admin():
             save_json(SONGS_FILE,songs)
             message = f"Song '{title}' uploaded successfully."
 
-            # Send email to subscribers of this artist
+            # Notify subscribers
             if artist_name in emails:
                 for e in emails[artist_name]:
                     send_email(
                         e,
-                        f"New release by {artist_name}",
-                        f"{artist_name} just released a new song: {title}\nListen now: http://127.0.0.1:5000"
+                        f"{artist_name} released a new song!",
+                        f"{artist_name} just released {title}! Listen here: http://127.0.0.1:5000"
                     )
 
         elif action == 'add_artist':
             name = request.form.get('name','Unknown')
             bio = request.form.get('bio','')
             profile_file = request.files.get('image')
-            profile_filename = '/static/img/artist_placeholder.jpg'
+            profile_filename = 'artist_placeholder.jpg'
             if profile_file:
                 profile_filename = f"{uuid.uuid4().hex}_{profile_file.filename}"
                 profile_path = os.path.join(IMG_FOLDER,profile_filename)
@@ -132,13 +138,12 @@ def subscribe():
         if email not in data[artist]:
             data[artist].append(email)
         save_json(EMAILS_FILE,data)
-        # Send confirmation email
-        send_email(email, f"Subscribed to {artist}", f"You are now subscribed to notifications for {artist} releases.")
+        send_email(email, f"Subscribed to {artist}", f"You are now subscribed to notifications for {artist}.")
     return redirect('/')
 
 # ----------- RUN -----------
 if __name__ == '__main__':
-    print("Starting local Yeezy-style music promo site...")
+    print("Starting local HOMOSEXUAL music promo site...")
     print(f"Music folder: {os.path.abspath(MUSIC_FOLDER)}")
     print(f"Image folder: {os.path.abspath(IMG_FOLDER)}")
     app.run(debug=True)
