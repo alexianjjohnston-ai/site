@@ -30,6 +30,7 @@
     overflow: hidden;
     text-align: center;
     background-color: #f9f9f9;
+    padding-bottom: 10px;
   }
   .song-card img {
     width: 100%;
@@ -46,6 +47,24 @@
     margin: 3px 0;
     font-size: 0.9em;
   }
+  .song-info audio {
+    width: 100%;
+    margin-top: 5px;
+  }
+  .subscribe-form {
+    text-align: center;
+    margin: 20px;
+  }
+  .subscribe-form input, .subscribe-form select {
+    padding: 8px;
+    margin: 5px;
+    font-size: 0.9em;
+  }
+  .subscribe-form button {
+    padding: 8px 12px;
+    font-size: 0.9em;
+    cursor: pointer;
+  }
   @media (prefers-color-scheme: dark) {
     body {
       background-color: #111;
@@ -54,6 +73,11 @@
     .song-card {
       background-color: #222;
       border-color: #444;
+    }
+    .subscribe-form input, .subscribe-form select, .subscribe-form button {
+      background-color: #333;
+      color: #eee;
+      border: 1px solid #555;
     }
   }
 </style>
@@ -71,10 +95,29 @@
       <p>Artist: {{ song.artist }}</p>
       <p>Producer: {{ song.producer }}</p>
       {% if song.features %}<p>Feat: {{ song.features }}</p>{% endif %}
+      <audio controls>
+        <source src="{{ song.filename }}" type="audio/mpeg">
+        Your browser does not support the audio element.
+      </audio>
       <a href="{{ song.filename }}" download>Download</a>
     </div>
   </div>
   {% endfor %}
+</div>
+
+<!-- Subscribe Form -->
+<div class="subscribe-form">
+  <h3>Get notified for new releases by artist:</h3>
+  <form action="/subscribe" method="POST">
+    <input type="email" name="email" placeholder="Your email" required>
+    <select name="artist" required>
+      <option value="">Select artist</option>
+      {% for artist in artists %}
+      <option value="{{ artist.name }}">{{ artist.name }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Subscribe</button>
+  </form>
 </div>
 
 </body>

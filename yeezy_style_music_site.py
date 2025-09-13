@@ -5,11 +5,12 @@ from email.mime.text import MIMEText
 app = Flask(__name__)
 
 # ----------- CONFIG -----------
-EMAIL_ADDRESS = "Alexianjjohnston@gmail.com"     # Your Gmail
-EMAIL_PASSWORD = "izwc nbwc oilo ujvl"          # Gmail app password
+EMAIL_ADDRESS = "Alexianjjohnston@gmail.com"  # Your Gmail
+EMAIL_PASSWORD = "izwc nbwc oilo ujvl"       # Your Gmail App Password
 SONGS_FILE = 'songs.json'
 ARTISTS_FILE = 'artists.json'
 EMAILS_FILE = 'emails.json'
+SETTINGS_FILE = 'site_settings.json'
 MUSIC_FOLDER = 'static/music'
 IMG_FOLDER = 'static/img'
 
@@ -21,7 +22,7 @@ def load_json(path):
     if os.path.exists(path):
         with open(path,'r') as f:
             return json.load(f)
-    return []
+    return {}
 
 def save_json(path,data):
     with open(path,'w') as f:
@@ -37,7 +38,6 @@ def send_email(to_email, subject, message):
         server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
         server.sendmail(EMAIL_ADDRESS, [to_email], msg.as_string())
         server.quit()
-        print(f"Email sent to {to_email}")
     except Exception as e:
         print("Email sending failed:", e)
 
@@ -46,12 +46,10 @@ def send_email(to_email, subject, message):
 def index():
     songs = load_json(SONGS_FILE)
     artists = load_json(ARTISTS_FILE)
-    return render_template('index.html', songs=songs, artists=artists, label_name="HOMOSEXUAL")
-
-@app.route('/artist/<name>')
-def artist_page(name):
-    songs = [s for s in load_json(SONGS_FILE) if s["artist"] == name]
-    return render_template('artist.html', songs=songs, artist=name)
+    settings = load_json(SETTINGS_FILE)
+    label_name = settings.get('label_name', 'HOMOSEXUAL')
+    hero_image = settings.get('hero_image', '/static/img/placeholder.jpg')
+    return render_template('index.html', songs=songs, artists=artists, label_name=label_name, hero_image=hero_image)
 
 @app.route('/admin', methods=['GET','POST'])
 def admin():
@@ -63,11 +61,15 @@ def admin():
     message = ''
     songs = load_json(SONGS_FILE)
     artists = load_json(ARTISTS_FILE)
-    emails = load_json(EMAILS_FILE)
+    settings = load_json(SETTINGS_FILE)
+    label_name = settings.get('label_name','HOMOSEXUAL')
 
     if request.method == 'POST':
         action = request.form.get('action')
-        if action == 'upload_song':
+        
+        # --- Upload or Edit Song ---
+        if action in ['upload_song','edit_song']:
+            song_id = request.form.get('song_id') or str(uuid.uuid4())
             title = request.form.get('title','Untitled')
             artist_name = request.form.get('artist','Unknown')
             producer = request.form.get('producer','')
@@ -75,8 +77,8 @@ def admin():
             audio_file = request.files.get('audio')
             cover_file = request.files.get('image')
 
-            audio_filename = ''
-            cover_filename = 'placeholder.jpg'
+            audio_filename = songs.get(song_id,{}).get('filename','')
+            cover_filename = songs.get(song_id,{}).get('cover','/static/img/placeholder.jpg')
 
             if audio_file:
                 audio_filename = f"{uuid.uuid4().hex}_{audio_file.filename}"
@@ -88,44 +90,58 @@ def admin():
                 cover_path = os.path.join(IMG_FOLDER,cover_filename)
                 cover_file.save(cover_path)
 
-            songs.append({
+            songs[song_id] = {
                 'title': title,
                 'artist': artist_name,
                 'producer': producer,
                 'features': features,
                 'filename': f'/static/music/{audio_filename}',
                 'cover': f'/static/img/{cover_filename}'
-            })
+            }
             save_json(SONGS_FILE,songs)
-            message = f"Song '{title}' uploaded successfully."
+            message = f"Song '{title}' saved successfully."
 
             # Notify subscribers
+            emails = load_json(EMAILS_FILE)
             if artist_name in emails:
                 for e in emails[artist_name]:
-                    send_email(
-                        e,
-                        f"{artist_name} released a new song!",
-                        f"{artist_name} just released {title}! Listen here: http://127.0.0.1:5000"
-                    )
+                    send_email(e, f"New release by {artist_name}", f"{artist_name} just released '{title}'\nListen now: {request.url_root}")
 
-        elif action == 'add_artist':
+        # --- Add/Edit Artist ---
+        elif action in ['add_artist','edit_artist']:
+            artist_id = request.form.get('artist_id') or str(uuid.uuid4())
             name = request.form.get('name','Unknown')
             bio = request.form.get('bio','')
             profile_file = request.files.get('image')
-            profile_filename = 'artist_placeholder.jpg'
+            profile_filename = artists.get(artist_id,{}).get('profile','/static/img/artist_placeholder.jpg')
             if profile_file:
                 profile_filename = f"{uuid.uuid4().hex}_{profile_file.filename}"
                 profile_path = os.path.join(IMG_FOLDER,profile_filename)
                 profile_file.save(profile_path)
-            artists.append({
+            artists[artist_id] = {
                 'name': name,
                 'bio': bio,
                 'profile': f'/static/img/{profile_filename}'
-            })
+            }
             save_json(ARTISTS_FILE,artists)
-            message = f"Artist '{name}' added successfully."
+            message = f"Artist '{name}' saved successfully."
 
-    return render_template('admin.html', songs=songs, artists=artists, message=message, label_name="HOMOSEXUAL")
+        # --- Update Site Settings ---
+        elif action == 'update_settings':
+            label_name = request.form.get('label_name', label_name)
+            hero_file = request.files.get('hero_image')
+            hero_image = settings.get('hero_image','/static/img/placeholder.jpg')
+            if hero_file:
+                hero_filename = f"{uuid.uuid4().hex}_{hero_file.filename}"
+                hero_path = os.path.join(IMG_FOLDER,hero_filename)
+                hero_file.save(hero_path)
+                hero_image = f'/static/img/{hero_filename}'
+            settings['label_name'] = label_name
+            settings['hero_image'] = hero_image
+            save_json(SETTINGS_FILE,settings)
+            message = "Site settings updated."
+
+    return render_template('admin.html', songs=songs, artists=artists, message=message, label_name=label_name)
 
 @app.route('/subscribe',methods=['POST'])
 def subscribe():
@@ -138,12 +154,12 @@ def subscribe():
         if email not in data[artist]:
             data[artist].append(email)
         save_json(EMAILS_FILE,data)
-        send_email(email, f"Subscribed to {artist}", f"You are now subscribed to notifications for {artist}.")
+        send_email(email, f"Subscribed to {artist}", f"You are now subscribed to notifications for {artist} releases.")
     return redirect('/')
 
 # ----------- RUN -----------
 if __name__ == '__main__':
-    print("Starting local HOMOSEXUAL music promo site...")
+    print("Starting local Yeezy-style music promo site...")
     print(f"Music folder: {os.path.abspath(MUSIC_FOLDER)}")
     print(f"Image folder: {os.path.abspath(IMG_FOLDER)}")
     app.run(debug=True)
