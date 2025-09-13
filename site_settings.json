@@ -1,1 +1,5 @@
-{"label_name":"HOMOSEXUAL","hero_image":"/static/img/banner.png","favicon":"/static/img/favicon.ico"}
+{
+  "label_name": "HOMOSEXUAL",
+  "favicon": "/static/img/favicon.ico",
+  "banner": "/static/img/banner.png"
+}
