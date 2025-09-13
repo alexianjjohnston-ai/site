@@ -1,124 +1,46 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ label_name }}</title>
-<style>
-  body {
-    font-family: Inter, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #fff;
-    color: #111;
-  }
-  header {
-    text-align: center;
-    padding: 20px;
-    font-size: 2em;
-    font-weight: bold;
-  }
-  .songs-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 20px;
-    padding: 20px;
-  }
-  .song-card {
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    overflow: hidden;
-    text-align: center;
-    background-color: #f9f9f9;
-    padding-bottom: 10px;
-  }
-  .song-card img {
-    width: 100%;
-    height: auto;
-  }
-  .song-info {
-    padding: 10px;
-  }
-  .song-info h3 {
-    margin: 5px 0;
-    font-size: 1em;
-  }
-  .song-info p {
-    margin: 3px 0;
-    font-size: 0.9em;
-  }
-  .song-info audio {
-    width: 100%;
-    margin-top: 5px;
-  }
-  .subscribe-form {
-    text-align: center;
-    margin: 20px;
-  }
-  .subscribe-form input, .subscribe-form select {
-    padding: 8px;
-    margin: 5px;
-    font-size: 0.9em;
-  }
-  .subscribe-form button {
-    padding: 8px 12px;
-    font-size: 0.9em;
-    cursor: pointer;
-  }
-  @media (prefers-color-scheme: dark) {
-    body {
-      background-color: #111;
-      color: #eee;
-    }
-    .song-card {
-      background-color: #222;
-      border-color: #444;
-    }
-    .subscribe-form input, .subscribe-form select, .subscribe-form button {
-      background-color: #333;
-      color: #eee;
-      border: 1px solid #555;
-    }
-  }
-</style>
-</head>
-<body>
+{% extends "base.html" %}
+{% block content %}
+<div style="margin-bottom:18px">
+  <form action="/subscribe" method="post" style="display:flex;gap:8px;flex-wrap:wrap">
+    <input class="input" name="email" type="email" placeholder="Enter your email" required style="flex:1;min-width:180px">
+    <select class="input" name="artist" required style="width:260px">
+      <option value="">Notify me for...</option>
+      {% for a in artists %}<option value="{{ a.name }}">{{ a.name }}</option>{% endfor %}
+    </select>
+    <button class="btn" type="submit">Subscribe</button>
+  </form>
+</div>
 
-<header>{{ label_name }}</header>
-
-<div class="songs-grid">
-  {% for song in songs %}
-  <div class="song-card">
-    <img src="{{ song.cover }}" alt="{{ song.title }}">
-    <div class="song-info">
-      <h3>{{ song.title }}</h3>
-      <p>Artist: {{ song.artist }}</p>
-      <p>Producer: {{ song.producer }}</p>
-      {% if song.features %}<p>Feat: {{ song.features }}</p>{% endif %}
-      <audio controls>
-        <source src="{{ song.filename }}" type="audio/mpeg">
-        Your browser does not support the audio element.
+<h2 class="small">Songs</h2>
+<div class="songs-grid grid">
+  {% for s in songs %}
+  <div class="card">
+    <img src="{{ s.cover }}" alt="{{ s.title }}">
+    <div style="padding:8px 0">
+      <strong>{{ s.title }}</strong>
+      <div class="small">Artist: {{ s.artist }} • Producer: {{ s.producer }}</div>
+      <audio controls style="width:100%;margin-top:8px">
+        <source src="{{ s.filename }}">
       </audio>
-      <a href="{{ song.filename }}" download>Download</a>
+      <div class="actions">
+        <a class="btn" href="{{ s.filename }}" download>Download</a>
+        <a class="delete-btn" href="/artist/{{ s.artist_id }}">View Artist</a>
+      </div>
     </div>
   </div>
   {% endfor %}
 </div>
 
-<!-- Subscribe Form -->
-<div class="subscribe-form">
-  <h3>Get notified for new releases by artist:</h3>
-  <form action="/subscribe" method="POST">
-    <input type="email" name="email" placeholder="Your email" required>
-    <select name="artist" required>
-      <option value="">Select artist</option>
-      {% for artist in artists %}
-      <option value="{{ artist.name }}">{{ artist.name }}</option>
-      {% endfor %}
-    </select>
-    <button type="submit">Subscribe</button>
-  </form>
+<h2 class="small" style="margin-top:24px">Merch</h2>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+  {% for m in merch %}
+  <div class="card">
+    <img src="{{ m.image }}" alt="{{ m.name }}">
+    <div style="padding-top:8px"><strong>{{ m.name }}</strong></div>
+    <div class="small">${{ m.price }}</div>
+    <p class="small">{{ m.description }}</p>
+    <button class="btn">Coming Soon</button>
+  </div>
+  {% endfor %}
 </div>
-
-</body>
-</html>
+{% endblock %}
