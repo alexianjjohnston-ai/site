@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Your Label</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg-color: #0f0f10;
+    --text-color: #fff;
+    --card-bg: #111;
+    --accent-color: #fff;
+}
+body.light {
+    --bg-color: #f9f9f9;
+    --text-color: #111;
+    --card-bg: #fff;
+    --accent-color: #000;
+}
+
+body {
+    margin:0;
+    padding:0;
+    font-family:'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: all 0.3s;
+}
+
+a { color: inherit; text-decoration:none; }
+
+/* Hero */
+.hero {
+    width:100%;
+    height:80vh;
+    background: url('/static/img/hero.jpg') center/cover no-repeat;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+}
+.hero h1 {
+    font-size:4rem;
+    font-weight:700;
+    letter-spacing:2px;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+}
+
+/* Controls */
+.controls {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    margin:30px auto 10px auto;
+    max-width:1200px;
+}
+.controls select, .controls button {
+    padding:8px 12px;
+    margin:5px;
+    border-radius:6px;
+    border:none;
+    font-weight:bold;
+    cursor:pointer;
+}
+.controls button {
+    background: var(--accent-color);
+    color: var(--bg-color);
+}
+.controls button:hover {
+    opacity:0.8;
+}
+
+/* Grid */
+.container { max-width:1200px; margin:0 auto; padding:20px; }
+.grid {
+    display:grid;
+    gap:20px;
+}
+
+/* Card */
+.card {
+    background: var(--card-bg);
+    border-radius:12px;
+    overflow:hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+.card:hover { transform:translateY(-5px); box-shadow:0 10px 30px rgba(0,0,0,0.5); }
+.card img { width:100%; display:block; }
+.card-content { padding:12px; }
+.card-content h4 { margin:6px 0; }
+.card-content p { margin:3px 0; font-size:0.9rem; color: #ccc; }
+.download-btn {
+    display:inline-block;
+    margin-top:8px;
+    padding:6px 14px;
+    background: var(--accent-color);
+    color: var(--bg-color);
+    font-weight:bold;
+    border-radius:6px;
+}
+.download-btn:hover { opacity:0.8; }
+
+/* Email notify form */
+.email-form { margin-top:20px; background:var(--card-bg); padding:12px; border-radius:12px; }
+.email-form input, .email-form select, .email-form button {
+    width:100%;
+    padding:8px;
+    margin:6px 0;
+    border-radius:6px;
+    border:none;
+}
+.email-form button { background: var(--accent-color); color: var(--bg-color); font-weight:bold; cursor:pointer; }
+.email-form button:hover { opacity:0.8; }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+<h1>Your Label</h1>
+</div>
+
+<!-- Controls -->
+<div class="controls container">
+<select id="artistFilter">
+    <option value="">All Artists</option>
+    {% for a in artists %}
+    <option value="{{ a.name }}">{{ a.name }}</option>
+    {% endfor %}
+</select>
+
+<select id="gridSelect">
+    <option value="2">2 per row</option>
+    <option value="3" selected>3 per row</option>
+    <option value="4">4 per row</option>
+</select>
+
+<button id="themeToggle">Toggle Light/Dark</button>
+</div>
+
+<!-- Songs -->
+<div class="container">
+<div class="grid" id="songsGrid">
+{% for s in songs %}
+<div class="card" data-artist="{{ s.artist }}">
+    <img src="{{ s.cover }}" alt="{{ s.title }}">
+    <div class="card-content">
+        <h4>{{ s.title }}</h4>
+        <p>Artist: {{ s.artist }}</p>
+        <p>Producer: {{ s.producer }}</p>
+        <p>Features: {{ s.features }}</p>
+        <audio controls src="{{ s.filename }}" style="width:100%; margin-top:8px"></audio>
+        <a href="{{ s.filename }}" download class="download-btn">Download</a>
+    </div>
+</div>
+{% endfor %}
+</div>
+</div>
+
+<!-- Email Notify -->
+<div class="container">
+<div class="email-form">
+<h3>Get notified about new releases</h3>
+<form method="POST" action="/subscribe">
+<label>Email:</label>
+<input type="email" name="email" required placeholder="Enter your email">
+<label>Artist:</label>
+<select name="artist">
+    {% for a in artists %}
+    <option value="{{ a.name }}">{{ a.name }}</option>
+    {% endfor %}
+</select>
+<button type="submit">Subscribe</button>
+</form>
+</div>
+</div>
+
+<script>
+// Light/Dark Toggle
+const themeBtn = document.getElementById('themeToggle');
+themeBtn.addEventListener('click', () => {
+    document.body.classList.toggle('light');
+});
+
+// Grid columns selector
+const gridSelect = document.getElementById('gridSelect');
+const songsGrid = document.getElementById('songsGrid');
+function updateGridColumns() {
+    const cols = gridSelect.value;
+    songsGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+}
+gridSelect.addEventListener('change', updateGridColumns);
+updateGridColumns();
+
+// Artist filter
+const artistFilter = document.getElementById('artistFilter');
+artistFilter.addEventListener('change', () => {
+    const val = artistFilter.value;
+    document.querySelectorAll('#songsGrid .card').forEach(card => {
+        if (!val || card.dataset.artist === val) card.style.display = 'block';
+        else card.style.display = 'none';
+    });
+});
+</script>
+
+</body>
+</html>
