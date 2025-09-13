@@ -1,44 +1,21 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{{ label_name or "HOMOSEXUAL" }}</title>
-<link rel="icon" href="{{ settings.get('favicon','/static/img/favicon.ico') if settings is defined else '/static/img/favicon.ico' }}">
-<style>
-:root{
-  --bg:#0f0f10; --card:#111; --muted:#9aa0a6; --accent:#ff2d6d; --glass: rgba(255,255,255,0.03);
-}
-body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:#fff;}
-.header{position:relative;text-align:center;}
-.header img.hero{width:100%;height:auto;object-fit:cover;display:block;max-height:420px}
-.container{max-width:1200px;margin:0 auto;padding:24px;}
-h1.label{margin:12px 0;font-size:28px;letter-spacing:2px}
-.grid{display:grid;gap:18px}
-.card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 6px 18px rgba(0,0,0,0.5)}
-.btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
-.input, select, textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.05);background:var(--glass);color:#fff;margin-top:8px}
-.small{font-size:0.9rem;color:var(--muted)}
-.row{display:flex;gap:12px;flex-wrap:wrap}
-.card img{width:100%;border-radius:8px;display:block}
-.actions{display:flex;gap:8px;margin-top:8px}
-.delete-btn{background:#222;color:#fff;border:1px solid rgba(255,255,255,0.06);padding:8px;border-radius:8px;cursor:pointer}
-.footer{padding:30px;text-align:center;color:var(--muted)}
-@media(min-width:800px){.songs-grid{grid-template-columns:repeat(4,1fr)}}
-@media(min-width:600px) and (max-width:799px){.songs-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:599px){.songs-grid{grid-template-columns:repeat(1,1fr)}}
-</style>
+  <meta charset="utf-8">
+  <title>{{ label_name }}</title>
+  <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <div class="header">
-    {% if hero %}
-      <img class="hero" src="{{ hero }}" alt="hero">
-    {% endif %}
-  </div>
-  <div class="container">
-    <h1 class="label">{{ label_name }}</h1>
+  <header>
+    <img src="/static/img/banner.png" class="banner">
+    <nav>
+      <a href="/">Home</a>
+      <a href="/merch">Merch</a>
+    </nav>
+  </header>
+  <main>
     {% block content %}{% endblock %}
-  </div>
-  <div class="footer">© {{ label_name }} — Coming soon merch checkout</div>
+  </main>
 </body>
 </html>

@@ -1,189 +1,50 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ label_name }} Admin</title>
-<style>
-  body {
-    font-family: Inter, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f9f9f9;
-    color: #111;
-  }
-  header {
-    text-align: center;
-    padding: 20px;
-    font-size: 2em;
-    font-weight: bold;
-    background-color: #222;
-    color: #fff;
-  }
-  nav {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    background-color: #333;
-    padding: 10px;
-  }
-  nav button {
-    padding: 10px 15px;
-    background-color: #444;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-  }
-  nav button.active {
-    background-color: #ff3c3c;
-  }
-  section {
-    display: none;
-    padding: 20px;
-  }
-  section.active {
-    display: block;
-  }
-  .card {
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    background-color: #fff;
-    padding: 15px;
-    margin-bottom: 20px;
-  }
-  .card img {
-    width: 100%;
-    max-height: 200px;
-    object-fit: cover;
-    border-radius: 10px;
-  }
-  input, select, button {
-    padding: 8px;
-    margin: 5px 0;
-    font-size: 1em;
-  }
-  button.upload-btn {
-    background-color: #ff3c3c;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-  }
-  @media (prefers-color-scheme: dark) {
-    body {
-      background-color: #111;
-      color: #eee;
-    }
-    nav {
-      background-color: #222;
-    }
-    nav button {
-      background-color: #333;
-      color: #eee;
-    }
-    nav button.active {
-      background-color: #ff3c3c;
-    }
-    .card {
-      background-color: #222;
-      border-color: #444;
-    }
-    input, select, button {
-      background-color: #333;
-      color: #eee;
-      border: 1px solid #555;
-    }
-  }
-</style>
-</head>
-<body>
+{% extends "base.html" %}
+{% block content %}
+<h1>Admin Panel</h1>
+<p>{{ message }}</p>
 
-<header>{{ label_name }} Admin Panel</header>
+<h2>Add Artist</h2>
+<form method="post" enctype="multipart/form-data">
+  <input type="hidden" name="action" value="add_artist">
+  <input type="text" name="name" placeholder="Artist name" required>
+  <textarea name="bio" placeholder="Bio"></textarea>
+  <input type="file" name="image">
+  <button type="submit" class="btn">Add Artist</button>
+</form>
 
-<nav>
-  <button class="tab-btn active" data-tab="songs">Songs</button>
-  <button class="tab-btn" data-tab="artists">Artists</button>
-  <button class="tab-btn" data-tab="settings">Site Settings</button>
-</nav>
+<h2>Upload Song</h2>
+<form method="post" enctype="multipart/form-data">
+  <input type="hidden" name="action" value="upload_song">
+  <input type="text" name="title" placeholder="Song title" required>
+  <input type="text" name="artist" placeholder="Artist" required>
+  <input type="text" name="producer" placeholder="Producer">
+  <input type="text" name="features" placeholder="Features">
+  <input type="file" name="audio" required>
+  <input type="file" name="image">
+  <button type="submit" class="btn">Upload Song</button>
+</form>
 
-<!-- MESSAGE -->
-{% if message %}
-<p style="text-align:center;color:green;">{{ message }}</p>
-{% endif %}
-
-<!-- SONGS SECTION -->
-<section id="songs" class="active">
-  <h2>Upload Song</h2>
-  <form method="POST" enctype="multipart/form-data">
-    <input type="hidden" name="action" value="upload_song">
-    <input type="text" name="title" placeholder="Title" required><br>
-    <input type="text" name="artist" placeholder="Artist" required><br>
-    <input type="text" name="producer" placeholder="Producer"><br>
-    <input type="text" name="features" placeholder="Features"><br>
-    <input type="file" name="audio" accept="audio/*" required><br>
-    <input type="file" name="image" accept="image/*"><br>
-    <button type="submit" class="upload-btn">Upload Song</button>
+<h2>Manage Songs</h2>
+{% for song in songs %}
+<div class="card">
+  <h3>{{ song.title }}</h3>
+  <form method="post">
+    <input type="hidden" name="action" value="delete_song">
+    <input type="hidden" name="song_id" value="{{ song.id }}">
+    <button type="submit" class="btn danger">Delete</button>
   </form>
+</div>
+{% endfor %}
 
-  <h3>Existing Songs</h3>
-  {% for song in songs %}
-  <div class="card">
-    <img src="{{ song.cover }}" alt="{{ song.title }}">
-    <p><strong>{{ song.title }}</strong></p>
-    <p>Artist: {{ song.artist }}</p>
-    <p>Producer: {{ song.producer }}</p>
-    {% if song.features %}<p>Feat: {{ song.features }}</p>{% endif %}
-    <a href="{{ song.filename }}" download>Download</a>
-  </div>
-  {% endfor %}
-</section>
-
-<!-- ARTISTS SECTION -->
-<section id="artists">
-  <h2>Add Artist</h2>
-  <form method="POST" enctype="multipart/form-data">
-    <input type="hidden" name="action" value="add_artist">
-    <input type="text" name="name" placeholder="Artist Name" required><br>
-    <textarea name="bio" placeholder="Bio"></textarea><br>
-    <input type="file" name="image" accept="image/*"><br>
-    <button type="submit" class="upload-btn">Add Artist</button>
+<h2>Manage Artists</h2>
+{% for artist in artists %}
+<div class="card">
+  <h3>{{ artist.name }}</h3>
+  <form method="post">
+    <input type="hidden" name="action" value="delete_artist">
+    <input type="hidden" name="artist_id" value="{{ artist.id }}">
+    <button type="submit" class="btn danger">Delete</button>
   </form>
-
-  <h3>Existing Artists</h3>
-  {% for artist in artists %}
-  <div class="card">
-    <img src="{{ artist.profile }}" alt="{{ artist.name }}">
-    <p><strong>{{ artist.name }}</strong></p>
-    <p>{{ artist.bio }}</p>
-  </div>
-  {% endfor %}
-</section>
-
-<!-- SITE SETTINGS -->
-<section id="settings">
-  <h2>Site Customization</h2>
-  <form method="POST" enctype="multipart/form-data">
-    <input type="hidden" name="action" value="update_settings">
-    <label>Top Banner Image:</label><br>
-    <input type="file" name="hero_image" accept="image/*"><br>
-    <label>Label Name:</label><br>
-    <input type="text" name="label_name" value="{{ label_name }}"><br>
-    <button type="submit" class="upload-btn">Update Site</button>
-  </form>
-</section>
-
-<script>
-  const tabs = document.querySelectorAll('.tab-btn');
-  const sections = document.querySelectorAll('section');
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      sections.forEach(s => s.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById(tab.dataset.tab).classList.add('active');
-    });
-  });
-</script>
-
-</body>
-</html>
+</div>
+{% endfor %}
+{% endblock %}

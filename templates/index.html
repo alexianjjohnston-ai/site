@@ -1,45 +1,33 @@
 {% extends "base.html" %}
 {% block content %}
-<div style="margin-bottom:18px">
-  <form action="/subscribe" method="post" style="display:flex;gap:8px;flex-wrap:wrap">
-    <input class="input" name="email" type="email" placeholder="Enter your email" required style="flex:1;min-width:180px">
-    <select class="input" name="artist" required style="width:260px">
-      <option value="">Notify me for...</option>
-      {% for a in artists %}<option value="{{ a.name }}">{{ a.name }}</option>{% endfor %}
-    </select>
-    <button class="btn" type="submit">Subscribe</button>
-  </form>
-</div>
-
-<h2 class="small">Songs</h2>
-<div class="songs-grid grid">
-  {% for s in songs %}
+<h1>{{ label_name }}</h1>
+<h2>Songs</h2>
+<div class="grid">
+  {% for song in songs %}
   <div class="card">
-    <img src="{{ s.cover }}" alt="{{ s.title }}">
-    <div style="padding:8px 0">
-      <strong>{{ s.title }}</strong>
-      <div class="small">Artist: {{ s.artist }} • Producer: {{ s.producer }}</div>
-      <audio controls style="width:100%;margin-top:8px">
-        <source src="{{ s.filename }}">
-      </audio>
-      <div class="actions">
-        <a class="btn" href="{{ s.filename }}" download>Download</a>
-        <a class="delete-btn" href="/artist/{{ s.artist_id }}">View Artist</a>
-      </div>
-    </div>
+    <img src="{{ song.cover }}" class="cover">
+    <h3>{{ song.title }}</h3>
+    <p>Artist: {{ song.artist }}</p>
+    <p>Producer: {{ song.producer }}</p>
+    <p>Features: {{ song.features }}</p>
+    <audio controls src="{{ song.filename }}"></audio>
+    <a class="btn" href="{{ song.filename }}" download>Download</a>
   </div>
   {% endfor %}
 </div>
 
-<h2 class="small" style="margin-top:24px">Merch</h2>
-<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
-  {% for m in merch %}
+<h2>Artists</h2>
+<div class="grid">
+  {% for artist in artists %}
   <div class="card">
-    <img src="{{ m.image }}" alt="{{ m.name }}">
-    <div style="padding-top:8px"><strong>{{ m.name }}</strong></div>
-    <div class="small">${{ m.price }}</div>
-    <p class="small">{{ m.description }}</p>
-    <button class="btn">Coming Soon</button>
+    <img src="{{ artist.profile }}" class="cover">
+    <h3>{{ artist.name }}</h3>
+    <p>{{ artist.bio }}</p>
+    <form method="post" action="/subscribe">
+      <input type="hidden" name="artist" value="{{ artist.name }}">
+      <input type="email" name="email" placeholder="Your email" required>
+      <button type="submit" class="btn">Subscribe</button>
+    </form>
   </div>
   {% endfor %}
 </div>
